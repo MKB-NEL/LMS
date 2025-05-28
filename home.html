@@ -3,156 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laptop Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="description" content="Advanced Laptop Management System for schools to track and analyze student laptop usage.">
+    <title>Laptop Management System - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            @apply min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300;
+        }
+        .sidebar {
+            @apply fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300;
+        }
+        .sidebar.active {
+            @apply translate-x-0;
+        }
+        .main-content {
+            @apply flex-1 ml-0 md:ml-64 p-6 transition-all duration-300;
         }
         .card {
-            transition: transform 0.3s, box-shadow 0.3s;
+            @apply bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 mb-6 transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200;
         }
-        .btn-primary, .btn-danger, .btn-success, .btn-info {
-            transition: background-color 0.3s;
+        .btn-danger {
+            @apply bg-red-600 text-white hover:bg-red-700 transition-colors duration-200;
         }
-        .btn-primary:hover, .btn-danger:hover, .btn-success:hover, .btn-info:hover {
-            filter: brightness(90%);
+        .btn-success {
+            @apply bg-green-600 text-white hover:bg-green-700 transition-colors duration-200;
         }
         .footer {
-            text-align: center;
-            padding: 0.5rem 0;
-            font-size: 0.85rem;
-            font-weight: 400;
+            @apply text-center py-4 text-sm text-gray-600 dark:text-gray-400;
         }
         .footer a {
-            color: #FFD700;
-            text-decoration: none;
-            transition: color 0.3s;
+            @apply text-yellow-400 hover:text-yellow-500 transition-colors duration-200;
         }
-        .footer a:hover {
-            color: #FFA500;
+        .loading-overlay {
+            @apply hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300;
         }
-        .footer .social-icon {
-            color: #FFD700;
-            margin: 0 8px;
-            font-size: 1rem;
-            transition: transform 0.3s, color 0.3s;
+        .loading-overlay.show {
+            @apply flex opacity-100;
         }
-        .footer .social-icon:hover {
-            color: #FFA500;
-            transform: scale(1.2);
+        .loader {
+            @apply w-12 h-12 border-4 border-t-blue-600 border-r-blue-800 border-transparent rounded-full animate-spin;
         }
-        .nav-btn {
-            margin-right: 10px;
+        .notification {
+            @apply bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded;
         }
-        #loadingSpinner {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2000;
+        @media (max-width: 768px) {
+            .main-content {
+                @apply ml-0;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loadingSpinner" class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div class="loading-overlay" id="loadingOverlay" aria-live="polite" aria-busy="false">
+        <div>
+            <div class="loader"></div>
+            <div class="loading-text text-white text-lg mt-4" id="loadingText">Loading...</div>
+        </div>
     </div>
 
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="#">Laptop Management System</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-4">
+            <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400">LMS Dashboard</h2>
+            <button class="md:hidden text-gray-600 dark:text-gray-400 mt-2" id="closeSidebar">
+                <i class="bi bi-x-lg"></i>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('addStudentSection')">ADD STUDENT</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('recordsSection')">LIST</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('analyticsSection')">ANALYZE</button>
-                    </li>
-                </ul>
-            </div>
         </div>
-    </nav>
+        <nav class="mt-4">
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="showSection('dashboardSection')" aria-label="View Dashboard">
+                <i class="bi bi-house-door mr-2"></i> Dashboard
+            </button>
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="showSection('addStudentSection')" aria-label="Add Student">
+                <i class="bi bi-person-plus mr-2"></i> Add Student
+            </button>
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="showSection('recordsSection')" aria-label="View Records">
+                <i class="bi bi-list-ul mr-2"></i> Records
+            </button>
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="showSection('analyticsSection')" aria-label="View Analytics">
+                <i class="bi bi-bar-chart mr-2"></i> Analytics
+            </button>
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" onclick="showSection('profileSection')" aria-label="View Profile">
+                <i class="bi bi-person-circle mr-2"></i> Profile
+            </button>
+        </nav>
+        <div class="absolute bottom-4 px-4">
+            <button class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700" id="themeToggle" aria-label="Toggle Dark Mode">
+                <i class="bi bi-moon-stars mr-2"></i> Toggle Theme
+            </button>
+        </div>
+    </div>
 
-    <div class="container my-5">
-        <!-- Add Student Form -->
-        <div id="addStudentSection" class="card shadow mb-5">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Add Student</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <input id="studentName" type="text" class="form-control" placeholder="Student Name" required>
+    <!-- Main Content -->
+    <div class="main-content">
+        <nav class="navbar navbar-light bg-white dark:bg-gray-800 shadow mb-4">
+            <div class="container-fluid">
+                <button class="md:hidden text-gray-600 dark:text-gray-400" id="toggleSidebar" aria-label="Toggle Sidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="navbar-brand fw-bold text-primary dark:text-blue-400">Laptop Management System</span>
+                <button class="btn btn-outline-danger" onclick="signOut()" aria-label="Sign Out">Sign Out</button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="card">
+            <div class="card-body">
+                <h2 class="text-xl font-semibold text-primary dark:text-blue-400 mb-4">Dashboard</h2>
+                <div id="notifications" class="mb-4"></div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <h3 class="text-lg font-medium">Total Students</h3>
+                            <p id="totalStudents" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <select id="studentClass" class="form-select" required>
-                            <option value="" disabled selected>Select Class Combination</option>
-                            <option value="S4MCE">S4MCE</option>
-                            <option value="S4MEG">S4MEG</option>
-                            <option value="S4PCB">S4PCB</option>
-                            <option value="S4PCM">S4PCM</option>
-                            <option value="S4MCB">S4MCB</option>
-                            <option value="S4LFK">S4LFK</option>
-                            <option value="S5MCE">S5MCE</option>
-                            <option value="S5MEG">S5MEG</option>
-                            <option value="S5PCB">S5PCB</option>
-                            <option value="S5PCM">S5PCM</option>
-                            <option value="S5MCB">S5MCB</option>
-                            <option value="S5LFK">S5LFK</option>
-                            <option value="S6MCE">S6MCE</option>
-                            <option value="S6MEG">S6MEG</option>
-                            <option value="S6PCB">S6PCB</option>
-                            <option value="S6PCM">S6PCM</option>
-                            <option value="S6MCB">S6MCB</option>
-                            <option value="S6LFK">S6LFK</option>
-                        </select>
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <h3 class="text-lg font-medium">Laptops Out</h3>
+                            <p id="laptopsOut" class="text-2xl font-bold text-red-600 dark:text-red-400">0</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <input id="computerBrand" type="text" class="form-control" placeholder="Computer Brand & Charger" required>
-                    </div>
-                    <div class="col-md-6">
-                        <input id="description" type="text" class="form-control" placeholder="Description">
-                    </div>
-                    <div class="col-12">
-                        <input id="additionalEquipment" type="text" class="form-control" placeholder="Additional Equipment (e.g., headphones, radio)">
-                    </div>
-                    <div class="col-12">
-                        <button onclick="addStudent()" class="btn btn-primary w-100 fw-bold">ADD STUDENT</button>
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <h3 class="text-lg font-medium">Weekly Usage (hrs)</h3>
+                            <p id="weeklyUsage" class="text-2xl font-bold text-green-600 dark:text-green-400">0</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Records List -->
-        <div id="recordsSection" class="card shadow mb-5 d-none">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Student Records</h2>
+        <!-- Add Student Section -->
+        <div id="addStudentSection" class="card d-none">
+            <div class="card-body">
+                <h2 class="text-xl font-semibold text-primary dark:text-blue-400 mb-4">Add Student</h2>
+                <form id="addStudentForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="studentName" class="form-label">Student Name</label>
+                            <input id="studentName" type="text" class="form-control" placeholder="Enter name" required aria-describedby="studentNameFeedback">
+                            <div id="studentNameFeedback" class="invalid-feedback">Name is required.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="studentClass" class="form-label">Class Combination</label>
+                            <select id="studentClass" class="form-select" required aria-describedby="studentClassFeedback">
+                                <option value="" disabled selected>Select Class</option>
+                                <option value="S4MCE">S4MCE</option><option value="S4MEG">S4MEG</option><option value="S4PCB">S4PCB</option>
+                                <option value="S4PCM">S4PCM</option><option value="S4MCB">S4MCB</option><option value="S4LFK">S4LFK</option>
+                                <option value="S5MCE">S5MCE</option><option value="S5MEG">S5MEG</option><option value="S5PCB">S5PCB</option>
+                                <option value="S5PCM">S5PCM</option><option value="S5MCB">S5MCB</option><option value="S5LFK">S5LFK</option>
+                                <option value="S6MCE">S6MCE</option><option value="S6MEG">S6MEG</option><option value="S6PCB">S6PCB</option>
+                                <option value="S6PCM">S6PCM</option><option value="S6MCB">S6MCB</option><option value="S6LFK">S6LFK</option>
+                            </select>
+                            <div id="studentClassFeedback" class="invalid-feedback">Class is required.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="computerBrand" class="form-label">Computer Brand & Charger</label>
+                            <input id="computerBrand" type="text" class="form-control" placeholder="e.g., Dell Inspiron" required aria-describedby="computerBrandFeedback">
+                            <div id="computerBrandFeedback" class="invalid-feedback">Brand is required.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="description" class="form-label">Description</label>
+                            <input id="description" type="text" class="form-control" placeholder="e.g., Silver, 15-inch">
+                        </div>
+                        <div class="col-12">
+                            <label for="additionalEquipment" class="form-label">Additional Equipment</label>
+                            <input id="additionalEquipment" type="text" class="form-control" placeholder="e.g., Headphones, Mouse">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-full fw-bold">Add Student</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Records Section -->
+        <div id="recordsSection" class="card d-none">
+            <div class="card-body">
+                <h2 class="text-xl font-semibold text-primary dark:text-blue-400 mb-4">Student Records</h2>
+                <div class="mb-4 flex flex-col md:flex-row gap-4">
+                    <input id="searchInput" type="text" class="form-control" placeholder="Search by name..." aria-label="Search records">
+                    <select id="classFilter" class="form-select w-auto">
+                        <option value="">All Classes</option>
+                        <option value="S4MCE">S4MCE</option><option value="S4MEG">S4MEG</option><option value="S4PCB">S4PCB</option>
+                        <option value="S4PCM">S4PCM</option><option value="S4MCB">S4MCB</option><option value="S4LFK">S4LFK</option>
+                        <option value="S5MCE">S5MCE</option><option value="S5MEG">S5MEG</option><option value="S5PCB">S5PCB</option>
+                        <option value="S5PCM">S5PCM</option><option value="S5MCB">S5MCB</option><option value="S5LFK">S5LFK</option>
+                        <option value="S6MCE">S6MCE</option><option value="S6MEG">S6MEG</option><option value="S6PCB">S6PCB</option>
+                        <option value="S6PCM">S6PCM</option><option value="S6MCB">S6MCB</option><option value="S6LFK">S6LFK</option>
+                    </select>
+                    <select id="statusFilter" class="form-select w-auto">
+                        <option value="">All Status</option>
+                        <option value="in">In</option>
+                        <option value="out">Out</option>
+                    </select>
+                    <button class="btn btn-success" onclick="exportCSV()">Export CSV</button>
+                </div>
+                <div class="mb-4">
+                    <button class="btn btn-primary mr-2" onclick="bulkCheckIn()">Bulk Check-In</button>
+                    <button class="btn btn-danger" onclick="bulkCheckOut()">Bulk Check-Out</button>
+                </div>
                 <div id="recordsList" class="row g-3"></div>
             </div>
         </div>
 
         <!-- Analytics Section -->
-        <div id="analyticsSection" class="card shadow mb-5 d-none">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Analytics</h2>
-                <div id="analyticsContent" class="row g-3"></div>
+        <div id="analyticsSection" class="card d-none">
+            <div class="card-body">
+                <h2 class="text-xl font-semibold text-primary dark:text-blue-400 mb-4">Analytics</h2>
+                <div class="row g-4">
+                    <div class="col-12">
+                        <canvas id="classDistributionChart" height="100"></canvas>
+                    </div>
+                    <div class="col-12">
+                        <canvas id="usageTrendChart" height="100"></canvas>
+                    </div>
+                    <div class="col-12">
+                        <h3 class="text-lg font-medium mb-2">Detailed Report</h3>
+                        <table class="table table-striped dark:table-dark">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Class</th>
+                                    <th>Total Hours</th>
+                                    <th>Days Used</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profileSection" class="card d-none">
+            <div class="card-body">
+                <h2 class="text-xl font-semibold text-primary dark:text-blue-400 mb-4">User Profile</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> <span id="profileName"></span></p>
+                        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+                        <p><strong>Role:</strong> <span id="profileRole"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <img id="profileImage" class="rounded-full w-32 h-32 object-cover" alt="Profile Image">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -160,96 +266,143 @@
     <footer class="footer">
         <p class="mb-0">
             © <span id="currentYear"></span> 
-            <a href="https://myportifolio-orpin.vercel.app/" target="_blank">Made by M.K.Bertrand | CEO of btem@fficial</a>
-            <a href="https://youtube.com/@yourchannel" target="_blank" class="social-icon"><i class="bi bi-youtube"></i></a>
-            <a href="https://instagram.com/yourprofile" target="_blank" class="social-icon"><i class="bi bi-instagram"></i></a>
+            <a href="https://myportfolio-orpin.vercel.app/" target="_blank" aria-label="Visit M.K.Bertrand's portfolio">Made by M.K.Bertrand | CEO of btem@fficial</a>
+            <a href="https://youtube.com/@yourchannel" target="_blank" class="social-icon" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+            <a href="https://instagram.com/yourprofile" target="_blank" class="social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
         </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, setDoc, doc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAWGE-qyjoj2wfFJt-BaRYWw8e2HtFjdtFpw",
-            authDomain: "rw-ai-6cc70.firebaseapp.com",
-            projectId: "rw-ai-6cc70",
-            storageBucket: "rw-ai-6cc70.firebasestorage.app",
-            messagingSenderId: "247002149954",
-            appId: "1:247002149954:web:32f8ca61646258c9c869db",
-            measurementId: "G-4VQ5HTBPME"
+            apiKey: "AIzaSyAAEYQGHXf7t5VgI9MkXO1RpiCH5w98GPw",
+            authDomain: "laptopms.firebaseapp.com",
+            projectId: "laptopms",
+            storageBucket: "laptopms.firebasestorage.app",
+            messagingSenderId: "965071744622",
+            appId: "1:965071744622:web:3411e7ada3d13ef070007f",
+            measurementId: "G-2TCNV6ZRY4"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const spinner = document.getElementById('loadingSpinner');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
         let records = [];
+        let userRole = 'Teacher';
+        let userData = {};
 
-        // Set current year in footer
+        // Enable offline persistence
+        enableIndexedDbPersistence(db).catch(err => console.error('Offline persistence error:', err));
+
+        // Show/hide loading overlay
+        const showLoading = (message) => {
+            console.log('Showing loader:', message);
+            loadingText.textContent = message;
+            loadingOverlay.style.display = 'flex';
+            setTimeout(() => loadingOverlay.classList.add('show'), 10);
+            loadingOverlay.setAttribute('aria-busy', 'true');
+        };
+        const hideLoading = () => {
+            console.log('Hiding loader');
+            loadingOverlay.classList.remove('show');
+            setTimeout(() => loadingOverlay.style.display = 'none', 300);
+            loadingOverlay.setAttribute('aria-busy', 'false');
+        };
+
+        // Sidebar toggle
+        document.getElementById('toggleSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('active');
+        });
+        document.getElementById('closeSidebar').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('active');
+        });
+
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+
+        // Set current year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        // Show/hide spinner
-        const showSpinner = () => spinner.style.display = 'block';
-        const hideSpinner = () => spinner.style.display = 'none';
-
         // Check authentication
-        onAuthStateChanged(auth, (user) => {
+        showLoading('Checking authentication...');
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'index.html';
             } else {
+                // Load user data
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                userData = userDoc.exists() ? userDoc.data() : {};
+                userRole = userData.role || 'Teacher';
+                document.getElementById('profileName').textContent = userData.name || 'N/A';
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileRole').textContent = userRole;
+                document.getElementById('profileImage').src = userData.imageUrl || 'https://via.placeholder.com/150';
                 loadRecords(user.uid);
+                if (userRole !== 'Admin') {
+                    document.getElementById('addStudentSection').classList.remove('d-none');
+                    document.getElementById('dashboardSection').classList.add('d-none');
+                }
             }
+        }, (error) => {
+            console.error('Auth error:', error);
+            alert('Authentication failed: ' + error.message);
+            hideLoading();
         });
 
-        // Load records from Firestore
-        async function loadRecords(uid) {
-            showSpinner();
-            try {
-                const recordsRef = collection(db, 'users', uid, 'records');
-                const querySnapshot = await getDocs(recordsRef);
+        // Load records with real-time listener
+        function loadRecords(uid) {
+            showLoading('Loading records...');
+            const recordsRef = collection(db, 'users', uid, 'records');
+            onSnapshot(recordsRef, (snapshot) => {
                 records = [];
-                querySnapshot.forEach(doc => {
-                    records.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach(doc => records.push({ id: doc.id, ...doc.data() }));
+                updateDashboard();
                 updateList();
-                showSection('addStudentSection');
-            } catch (error) {
+                updateAnalytics();
+                hideLoading();
+            }, (error) => {
+                console.error('Load records error:', error);
                 alert('Error loading records: ' + error.message);
-            } finally {
-                hideSpinner();
-            }
+                hideLoading();
+            });
         }
 
-        // Show specific section
-        function showSection(sectionId) {
-            const sections = ['addStudentSection', 'recordsSection', 'analyticsSection'];
-            sections.forEach(id => {
-                document.getElementById(id).classList.add('d-none');
-            });
+        // Show section
+        window.showSection = (sectionId) => {
+            const sections = ['dashboardSection', 'addStudentSection', 'recordsSection', 'analyticsSection', 'profileSection'];
+            sections.forEach(id => document.getElementById(id).classList.add('d-none'));
             document.getElementById(sectionId).classList.remove('d-none');
-            if (sectionId === 'analyticsSection') {
-                updateAnalytics();
-            }
-        }
+            document.getElementById('sidebar').classList.remove('active');
+            if (sectionId === 'analyticsSection') updateAnalytics();
+        };
 
         // Add student
-        async function addStudent() {
+        document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
             const studentName = document.getElementById('studentName').value.trim();
             const studentClass = document.getElementById('studentClass').value;
             const computerBrand = document.getElementById('computerBrand').value.trim();
             const description = document.getElementById('description').value.trim();
             const additionalEquipment = document.getElementById('additionalEquipment').value.trim();
 
-            if (!studentName || !studentClass || !computerBrand) {
-                alert('Please fill in all required fields (Name, Class, Computer Brand).');
-                return;
-            }
-
-            showSpinner();
+            showLoading('Adding student...');
             try {
                 const user = auth.currentUser;
                 const record = {
@@ -260,47 +413,44 @@
                     additionalEquipment,
                     status: 'in',
                     checkoutTime: null,
-                    history: []
+                    history: [],
+                    createdAt: new Date().toISOString()
                 };
                 const docRef = doc(collection(db, 'users', user.uid, 'records'));
                 await setDoc(docRef, record);
-                records.push({ id: docRef.id, ...record });
-                updateList();
-
-                // Clear form
-                document.getElementById('studentName').value = '';
-                document.getElementById('studentClass').value = '';
-                document.getElementById('computerBrand').value = '';
-                document.getElementById('description').value = '';
-                document.getElementById('additionalEquipment').value = '';
+                await logAction(user.uid, 'add_student', { studentName, studentClass });
+                form.reset();
+                form.classList.remove('was-validated');
             } catch (error) {
+                console.error('Add student error:', error);
                 alert('Error adding student: ' + error.message);
             } finally {
-                hideSpinner();
+                hideLoading();
             }
-        }
+        });
 
-        // Handle check-out
-        async function checkOut(index) {
-            showSpinner();
+        // Check-out
+        window.checkOut = async (index) => {
+            showLoading('Checking out...');
             try {
                 const user = auth.currentUser;
                 records[index].status = 'out';
                 records[index].checkoutTime = new Date().toISOString();
                 records[index].history.push({ action: 'checkout', time: records[index].checkoutTime });
                 await setDoc(doc(db, 'users', user.uid, 'records', records[index].id), records[index]);
-                updateList();
+                await logAction(user.uid, 'checkout', { studentName: records[index].studentName });
             } catch (error) {
+                console.error('Checkout error:', error);
                 alert('Error checking out: ' + error.message);
             } finally {
-                hideSpinner();
+                hideLoading();
             }
-        }
+        };
 
-        // Handle check-in
-        async function checkIn(index) {
+        // Check-in
+        window.checkIn = async (index) => {
             if (records[index].status === 'out') {
-                showSpinner();
+                showLoading('Checking in...');
                 try {
                     const user = auth.currentUser;
                     const checkoutTime = new Date(records[index].checkoutTime);
@@ -313,50 +463,154 @@
                         duration: ((checkinTime - checkoutTime) / (1000 * 60 * 60)).toFixed(2)
                     });
                     await setDoc(doc(db, 'users', user.uid, 'records', records[index].id), records[index]);
-                    updateList();
+                    await logAction(user.uid, 'checkin', { studentName: records[index].studentName });
                 } catch (error) {
+                    console.error('Checkin error:', error);
                     alert('Error checking in: ' + error.message);
                 } finally {
-                    hideSpinner();
+                    hideLoading();
                 }
             }
+        };
+
+        // Bulk actions
+        window.bulkCheckIn = async () => {
+            const selected = document.querySelectorAll('.record-checkbox:checked');
+            if (!selected.length) {
+                alert('Select at least one record.');
+                return;
+            }
+            showLoading('Processing bulk check-in...');
+            try {
+                const user = auth.currentUser;
+                for (const checkbox of selected) {
+                    const index = parseInt(checkbox.dataset.index);
+                    if (records[index].status === 'out') {
+                        const checkoutTime = new Date(records[index].checkoutTime);
+                        const checkinTime = new Date();
+                        records[index].status = 'in';
+                        records[index].checkoutTime = null;
+                        records[index].history.push({
+                            action: 'checkin',
+                            time: checkinTime.toISOString(),
+                            duration: ((checkinTime - checkoutTime) / (1000 * 60 * 60)).toFixed(2)
+                        });
+                        await setDoc(doc(db, 'users', user.uid, 'records', records[index].id), records[index]);
+                        await logAction(user.uid, 'bulk_checkin', { studentName: records[index].studentName });
+                    }
+                }
+            } catch (error) {
+                console.error('Bulk check-in error:', error);
+                alert('Error processing bulk check-in: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        window.bulkCheckOut = async () => {
+            const selected = document.querySelectorAll('.record-checkbox:checked');
+            if (!selected.length) {
+                alert('Select at least one record.');
+                return;
+            }
+            showLoading('Processing bulk check-out...');
+            try {
+                const user = auth.currentUser;
+                for (const checkbox of selected) {
+                    const index = parseInt(checkbox.dataset.index);
+                    if (records[index].status === 'in') {
+                        records[index].status = 'out';
+                        records[index].checkoutTime = new Date().toISOString();
+                        records[index].history.push({ action: 'checkout', time: records[index].checkoutTime });
+                        await setDoc(doc(db, 'users', user.uid, 'records', records[index].id), records[index]);
+                        await logAction(user.uid, 'bulk_checkout', { studentName: records[index].studentName });
+                    }
+                }
+            } catch (error) {
+                console.error('Bulk check-out error:', error);
+                alert('Error processing bulk check-out: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // Update dashboard
+        function updateDashboard() {
+            const totalStudents = records.length;
+            const laptopsOut = records.filter(r => r.status === 'out').length;
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            const weeklyUsage = records
+                .flatMap(r => r.history.filter(h => h.duration && new Date(h.time) >= weekStart))
+                .reduce((sum, h) => sum + parseFloat(h.duration), 0)
+                .toFixed(2);
+
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('laptopsOut').textContent = laptopsOut;
+            document.getElementById('weeklyUsage').textContent = weeklyUsage;
+
+            // Notifications for overdue check-outs
+            const notifications = document.getElementById('notifications');
+            notifications.innerHTML = '';
+            records.forEach(r => {
+                if (r.status === 'out' && r.checkoutTime) {
+                    const hoursOut = (new Date() - new Date(r.checkoutTime)) / (1000 * 60 * 60);
+                    if (hoursOut > 24) {
+                        const div = document.createElement('div');
+                        div.className = 'notification';
+                        div.innerHTML = `<p><strong>Overdue:</strong> ${r.studentName}'s laptop is out for ${hoursOut.toFixed(1)} hours.</p>`;
+                        notifications.appendChild(div);
+                    }
+                }
+            });
         }
 
         // Update records list
         function updateList() {
             const list = document.getElementById('recordsList');
             list.innerHTML = '';
+            let filteredRecords = records;
 
-            records.forEach((record, index) => {
+            // Apply filters
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const classFilter = document.getElementById('classFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            if (search) filteredRecords = filteredRecords.filter(r => r.studentName.toLowerCase().includes(search));
+            if (classFilter) filteredRecords = filteredRecords.filter(r => r.studentClass === classFilter);
+            if (statusFilter) filteredRecords = filteredRecords.filter(r => r.status === statusFilter);
+
+            filteredRecords.forEach((record, index) => {
                 const recordDiv = document.createElement('div');
                 recordDiv.className = 'col-12';
                 recordDiv.innerHTML = `
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center">
+                    <div class="card p-4 flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex items-center">
+                            <input type="checkbox" class="record-checkbox mr-3" data-index="${index}" aria-label="Select ${record.studentName}">
                             <div>
                                 <h5 class="mb-1">${record.studentName}</h5>
                                 <p class="mb-1">Class: ${record.studentClass}</p>
                                 <p class="mb-1">Computer: ${record.computerBrand}</p>
-                                ${record.status === 'out' ? '<p class="text-warning fw-bold mb-1">IT IS OUT</p>' : ''}
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <button onclick="checkOut(${index})" class="${record.status === 'out' ? 'd-none' : ''} btn btn-danger btn-sm">OUT</button>
-                                <button onclick="checkIn(${index})" class="${record.status === 'in' ? 'd-none' : ''} btn btn-success btn-sm">IN</button>
-                                <button class="btn btn-link text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal${index}">...</button>
+                                ${record.status === 'out' ? '<p class="text-yellow-600 font-bold mb-1">OUT</p>' : ''}
                             </div>
                         </div>
+                        <div class="flex items-center gap-2 mt-2 md:mt-0">
+                            <button onclick="checkOut(${index})" class="${record.status === 'out' ? 'hidden' : 'btn btn-primary btn-sm'}" aria-label="Check out ${record.studentName}">Out</button>
+                            <button onclick="checkIn(${index})" class="${record.status === 'in' ? 'hidden' : 'btn btn-success btn-sm'}" aria-label="Check in ${record.studentName}">In</button>
+                            <button class="btn btn-link text-blue-500" data-bs-toggle="modal" data-bs-target="#detailsModal${record.id}" aria-label="View details of ${record.studentName}">Details</button>
+                        </div>
                     </div>
-                    <!-- Modal for Details -->
-                    <div class="modal fade" id="detailsModal${index}" tabindex="-1" aria-hidden="true">
+                    <div class="modal fade" id="detailsModal${record.id}" tabindex="-1" aria-labelledby="detailsModalLabel${record.id}" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">${record.studentName}'s Details</h5>
+                                    <h5 class="modal-title" id="detailsModalLabel${record.id}">${record.studentName}'s Details</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <p><strong>Description:</strong> ${record.description || 'N/A'}</p>
                                     <p><strong>Additional Equipment:</strong> ${record.additionalEquipment || 'N/A'}</p>
+                                    <p><strong>History:</strong> ${record.history.map(h => `${h.action} at ${new Date(h.time).toLocaleString()} ${h.duration ? `(${h.duration} hrs)` : ''}`).join('<br>') || 'No history'}</p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -369,82 +623,130 @@
             });
         }
 
-        // Update analytics with graphs
+        // Update analytics
         function updateAnalytics() {
-            const analyticsContent = document.getElementById('analyticsContent');
-            analyticsContent.innerHTML = '';
-
-            const today = new Date().toISOString().split('T')[0];
-            const weekStart = new Date();
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-
-            records.forEach((record, index) => {
-                const history = record.history || [];
-                const daysUsed = [...new Set(history.map(h => new Date(h.time).toISOString().split('T')[0]))].length;
-                const weekHistory = history.filter(h => new Date(h.time) >= weekStart);
-                const totalWeekDuration = weekHistory
-                    .filter(h => h.duration)
-                    .reduce((sum, h) => sum + parseFloat(h.duration), 0)
-                    .toFixed(2);
-                const todayHistory = history.filter(h => h.time.startsWith(today));
-                const todayUsage = todayHistory
-                    .filter(h => h.action === 'checkout')
-                    .map(h => {
-                        const checkin = history.find(c => c.action === 'checkin' && new Date(c.time) > new Date(h.time));
-                        return checkin ? `${new Date(h.time).toLocaleTimeString()} - ${new Date(checkin.time).toLocaleTimeString()}` : '';
-                    })
-                    .filter(t => t)
-                    .join(', ');
-
-                // Prepare data for bar chart
-                const daysData = Array(7).fill(0);
-                history
-                    .filter(h => h.duration && new Date(h.time) >= weekStart)
-                    .forEach(h => {
-                        const dayIndex = new Date(h.time).getDay();
-                        daysData[dayIndex] += parseFloat(h.duration);
-                    });
-
-                const analyticsDiv = document.createElement('div');
-                analyticsDiv.className = 'col-12';
-                analyticsDiv.innerHTML = `
-                    <div class="card p-3">
-                        <h5 class="mb-1">${record.studentName} (${record.studentClass})</h5>
-                        <p class="mb-1">Days Used: ${daysUsed}</p>
-                        <p class="mb-1">Total Time This Week: ${totalWeekDuration} hrs</p>
-                        <p class="mb-3">Today's Usage: ${todayUsage || 'None'}</p>
-                        <canvas id="chart${index}" height="100"></canvas>
-                    </div>
-                `;
-                analyticsContent.appendChild(analyticsDiv);
-
-                // Create bar chart
-                new Chart(document.getElementById(`chart${index}`), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                        datasets: [{
-                            label: 'Hours Used',
-                            data: daysData,
-                            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-                            borderColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: { display: true, text: 'Hours' }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
+            // Class distribution
+            const classCounts = records.reduce((acc, r) => {
+                ...acc,
+                [r.studentClass]: (acc[r.studentClass] || 0) + 1
+            }, {});
+            new Chart(document.getElementById('classDistributionChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(classCounts),
+                    datasets: [{
+                        data: Object.values(classCounts),
+                        backgroundColor: ['#4B0082','#FF4500','#FFD700','#00CED1', '#00FA9A', '#00B7F0', '#FF69B4', '#1E90FF', '#9ACD32', '#FF6347', '#20B2AA', '#9932CC', '#228B22', '#DC143C', '#00FFFF', '#FF00FF', '#7B68EE', '#ADFF2F']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Class Distribution' }
                     }
-                });
+                }
+            });
+
+            // Usage trend
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - 30);
+            const daysData = Array(30).fill(0);
+            records.forEach(r => {
+                const dayIndex = Math.floor((new Date(h.time) - weekStart) / (1000 * 86400));
+                if (dayIndex >= 0 && dayIndex < 30) daysData[dayIndex] += parseFloat(h.duration);
+            });
+            new Chart(document.getElementById('usageTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => {
+                        const date = new Date(weekStart);
+                        date.setDate(weekStart.getDate() + i);
+                        return date.toLocaleDateString('en-US', { day: '2-digit' });
+                    });
+                    datasets: [{
+                        label: 'Hours Used',
+                        data: daysData,
+                        borderColor: '#007bff',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: '30-Day' } } Usage Trend' }
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Hours' } } }
+                    }
+                }
+            });
+
+            // Detailed report
+            const tableBody = document.getElementById('analyticsTable');
+            tableBody.innerHTML = '';
+            records.forEach(record => {
+                const history = record.history || [];
+                const totalHours = history.filter(h => h.duration).reduce((sum, h) => sum + parseFloat(h.duration), 0).toFixed(2);
+                const daysUsed = [...new Set(history.map(h => new Date(h.time).toISOString().split('T')[0])).length];
+                const row = document.createElement('tr');
+                row.innerHTML = `<tr><td>${record.studentName}</td><td>${record.studentClass}</td><td>${totalHours}</td><td>${daysUsed}</td></tr>`;
+                tableBody.appendChild(row);
             });
         }
+
+        // Export CSV
+        window.exportCSV = () => {
+            const headers = ['Student Name', 'Class', 'Computer Brand', 'Status', 'Description', 'Additional Equipment'];
+            const rows = records.map(r => [
+                `"${r.studentName}"`,
+                r.studentClass,
+                `"${r.computerBrand}"`,
+                r.status,
+                `"${r.description || ''}"`,
+                `"${r.additionalEquipment || ''}"`
+            ]);
+            const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'laptop_records.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // Log action
+        async function logAction(uid, action, details) {
+            try {
+                await setDoc(doc(collection(db, 'users', uid, 'audit_logs')), {
+                    action,
+                    details,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Log action error:', error);
+            }
+        }
+
+        // Sign out
+        window.signOut = async () => {
+            showLoading('Signing out...');
+            try {
+                await firebaseSignOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Sign out error:', error);
+                alert('Error signing out: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', updateList);
+        document.getElementById('classFilter').addEventListener('change', updateList);
+        document.getElementById('statusFilter').addEventListener('change', updateList);
     </script>
 </body>
 </html>
