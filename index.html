@@ -3,338 +3,507 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laptop Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="description" content="Laptop Management System for schools to track student laptop usage.">
+    <title>Laptop Management System - Welcome</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .hero-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin: 1rem auto;
+            loading: lazy;
+        }
+        .btn-start {
+            font-size: 1.25rem;
+            padding: 0.75rem 2rem;
+            background-color: #007bff;
+            border: none;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-start:hover {
+            background-color: #005f99;
+            transform: scale(1.05);
+        }
+        .modal-content {
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
             background-color: #f8f9fa;
+            border-bottom: none;
         }
-        .card {
-            transition: transform 0.3s, box-shadow 0.3s;
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 500;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            border-color: #007bff;
         }
-        .btn-primary, .btn-danger, .btn-success, .btn-info {
-            transition: background-color 0.3s;
-        }
-        .btn-primary:hover, .btn-danger:hover, .btn-success:hover, .btn-info:hover {
-            filter: brightness(90%);
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
         .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #343a40;
-            color: white;
             text-align: center;
-            padding: 1rem;
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+            font-weight: 400;
         }
-        .nav-btn {
-            margin-right: 10px;
+        .footer a {
+            color: #FFD700;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .footer a:hover {
+            color: #FFA500;
+        }
+        .footer .social-icon {
+            color: #FFD700;
+            margin: 0 8px;
+            font-size: 1rem;
+            transition: transform 0.3s, color 0.3s;
+        }
+        .footer .social-icon:hover {
+            color: #FFA500;
+            transform: scale(1.2);
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .loading-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid transparent;
+            border-top: 5px solid #007bff;
+            border-right: 5px solid #005f99;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loading-text {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 576px) {
+            .hero {
+                padding: 2rem 1rem;
+            }
+            .btn-start {
+                font-size: 1rem;
+                padding: 0.5rem 1.5rem;
+            }
+            .loading-text {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="#">Laptop Management System</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('addStudentSection')">ADD STUDENT</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('recordsSection')">LIST</button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="btn btn-outline-primary nav-btn" onclick="showSection('analyticsSection')">ANALYZE</button>
-                    </li>
-                </ul>
+    <div class="loading-overlay" id="loadingOverlay" aria-live="polite" aria-busy="false">
+        <div>
+            <div class="loader"></div>
+            <div class="loading-text" id="loadingText">Loading...</div>
+        </div>
+    </div>
+
+    <div class="hero" role="main">
+        <h1 class="display-4 fw-bold text-primary mb-4">Welcome to the Laptop Management System</h1>
+        <p class="lead text-dark mb-4">
+            Empower your school to efficiently track and manage student laptop usage. Record check-ins and check-outs, monitor usage times, and gain insights with dynamic analytics. Supports 18 class combinations (e.g., S4MCE, S5PCB) with secure data storage.
+        </p>
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-4 col-sm-6">
+                <img src="https://images.unsplash.com/photo-1587614382345-2ac574b77c08?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Laptop in classroom" class="hero-img" loading="lazy">
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60" alt="Technology dashboard" class="hero-img" loading="lazy">
             </div>
         </div>
-    </nav>
+        <button class="btn btn-primary btn-start mt-4 fw-bold" data-bs-toggle="modal" data-bs-target="#authModal" aria-label="Start using the Laptop Management System">LET'S START</button>
+    </div>
 
-    <div class="container my-5">
-        <!-- Add Student Form -->
-        <div id="addStudentSection" class="card shadow mb-5">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Add Student</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <input id="studentName" type="text" class="form-control" placeholder="Student Name" required>
-                    </div>
-                    <div class="col-md-6">
-                        <select id="studentClass" class="form-select" required>
-                            <option value="" disabled selected>Select Class Combination</option>
-                            <option value="S4MCE">S4MCE</option>
-                            <option value="S4MEG">S4MEG</option>
-                            <option value="S4PCB">S4PCB</option>
-                            <option value="S4PCM">S4PCM</option>
-                            <option value="S4MCB">S4MCB</option>
-                            <option value="S4LFK">S4LFK</option>
-                            <option value="S5MCE">S5MCE</option>
-                            <option value="S5MEG">S5MEG</option>
-                            <option value="S5PCB">S5PCB</option>
-                            <option value="S5PCM">S5PCM</option>
-                            <option value="S5MCB">S5MCB</option>
-                            <option value="S5LFK">S5LFK</option>
-                            <option value="S6MCE">S6MCE</option>
-                            <option value="S6MEG">S6MEG</option>
-                            <option value="S6PCB">S6PCB</option>
-                            <option value="S6PCM">S6PCM</option>
-                            <option value="S6MCB">S6MCB</option>
-                            <option value="S6LFK">S6LFK</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <input id="computerBrand" type="text" class="form-control" placeholder="Computer Brand & Charger" required>
-                    </div>
-                    <div class="col-md-6">
-                        <input id="description" type="text" class="form-control" placeholder="Description">
-                    </div>
-                    <div class="col-12">
-                        <input id="additionalEquipment" type="text" class="form-control" placeholder="Additional Equipment (e.g., headphones, radio)">
-                    </div>
-                    <div class="col-12">
-                        <button onclick="addStudent()" class="btn btn-primary w-100 fw-bold">ADD STUDENT</button>
+    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="authModalLabel">Get Started</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-4" id="authTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">Sign Up</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="authTabContent">
+                        <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                            <form id="loginForm" novalidate>
+                                <div class="mb-3">
+                                    <label for="loginEmail" class="form-label">Email address</label>
+                                    <input type="email" class="form-control" id="loginEmail" placeholder="Enter email" required aria-describedby="loginEmailFeedback">
+                                    <div id="loginEmailFeedback" class="invalid-feedback">
+                                        Please enter a valid email address.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required aria-describedby="loginPasswordFeedback">
+                                    <div id="loginPasswordFeedback" class="invalid-feedback">
+                                        Please enter your password.
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold">Login</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                            <form id="signupForm" novalidate>
+                                <div class="mb-3">
+                                    <label for="signupName" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="signupName" placeholder="Enter full name" required aria-describedby="signupNameFeedback">
+                                    <div id="signupNameFeedback" class="invalid-feedback">
+                                        Please enter your full name.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupEmail" class="form-label">Email address</label>
+                                    <input type="email" class="form-control" id="signupEmail" placeholder="Enter email" required aria-describedby="signupEmailFeedback">
+                                    <div id="signupEmailFeedback" class="invalid-feedback">
+                                        Please enter a valid email address.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="signupPassword" placeholder="Enter password" required minlength="8" aria-describedby="signupPasswordFeedback">
+                                    <div id="signupPasswordFeedback" class="invalid-feedback">
+                                        Password must be at least 8 characters long and include a number and a special character.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" id="signupConfirmPassword" placeholder="Confirm password" required aria-describedby="signupConfirmPasswordFeedback">
+                                    <div id="signupConfirmPasswordFeedback" class="invalid-feedback">
+                                        Passwords do not match.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupImage" class="form-label">Profile Image</label>
+                                    <input type="file" class="form-control" id="signupImage" accept="image/*" required aria-describedby="signupImageFeedback">
+                                    <div id="signupImageFeedback" class="invalid-feedback">
+                                        Please select a valid image file.
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold">Sign Up</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Records List -->
-        <div id="recordsSection" class="card shadow mb-5 d-none">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Student Records</h2>
-                <div id="recordsList" class="row g-3"></div>
-            </div>
-        </div>
-
-        <!-- Analytics Section -->
-        <div id="analyticsSection" class="card shadow mb-5 d-none">
-            <div class="card-body p-4">
-                <h2 class="card-title h4 mb-4 text-primary">Analytics</h2>
-                <div id="analyticsContent" class="row g-3"></div>
-            </div>
-        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>Made by Bertrand</p>
+    <footer class="footer" role="contentinfo">
+        <p class="mb-0">
+            © <span id="currentYear"></span> 
+            <a href="https://myportifolio-orpin.vercel.app/" target="_blank" aria-label="Visit M.K.Bertrand's portfolio">Made by M.K.Bertrand | CEO of btem@fficial</a>
+            <a href="https://youtube.com/@yourchannel" target="_blank" class="social-icon" aria-label="Visit our YouTube channel"><i class="bi bi-youtube"></i></a>
+            <a href="https://instagram.com/yourprofile" target="_blank" class="social-icon" aria-label="Visit our Instagram profile"><i class="bi bi-instagram"></i></a>
+        </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Load records from local storage
-        let records = JSON.parse(localStorage.getItem('laptopRecords')) || [];
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // Update list on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateList();
-            showSection('addStudentSection'); // Show Add Student section by default
-        });
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAEYQGHXf7t5VgI9MkXO1RpiCH5w98GPw",
+            authDomain: "laptopms.firebaseapp.com",
+            projectId: "laptopms",
+            storageBucket: "laptopms.firebasestorage.app",
+            messagingSenderId: "965071744622",
+            appId: "1:965071744622:web:3411e7ada3d13ef070007f",
+            measurementId: "G-2TCNV6ZRY4"
+        };
 
-        // Show specific section
-        function showSection(sectionId) {
-            const sections = ['addStudentSection', 'recordsSection', 'analyticsSection'];
-            sections.forEach(id => {
-                document.getElementById(id).classList.add('d-none');
-            });
-            document.getElementById(sectionId).classList.remove('d-none');
-            if (sectionId === 'analyticsSection') {
-                updateAnalytics();
-            }
+        // Initialize Firebase
+        let app;
+        try {
+            app = initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Failed to initialize application. Please try again later.');
         }
 
-        // Add student
-        function addStudent() {
-            const studentName = document.getElementById('studentName').value.trim();
-            const studentClass = document.getElementById('studentClass').value;
-            const computerBrand = document.getElementById('computerBrand').value.trim();
-            const description = document.getElementById('description').value.trim();
-            const additionalEquipment = document.getElementById('additionalEquipment').value.trim();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
 
-            if (!studentName || !studentClass || !computerBrand) {
-                alert('Please fill in all required fields (Name, Class, Computer Brand).');
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Show/hide loading overlay with message
+        const showLoading = (message) => {
+            console.log('Showing loader:', message);
+            loadingText.textContent = message;
+            loadingOverlay.style.display = 'flex';
+            setTimeout(() => loadingOverlay.classList.add('show'), 10);
+            loadingOverlay.setAttribute('aria-busy', 'true');
+        };
+        const hideLoading = () => {
+            console.log('Hiding loader');
+            loadingOverlay.classList.remove('show');
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 300);
+            loadingOverlay.setAttribute('aria-busy', 'false');
+        };
+
+        // Password strength validation
+        const validatePassword = (password) => {
+            const minLength = 8;
+            const hasNumber = /\d/;
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/;
+            return password.length >= minLength && hasNumber.test(password) && hasSpecial.test(password);
+        };
+
+        // Validate image file
+        const validateImage = (file) => {
+            if (!file) return false;
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            return validTypes.includes(file.type) && file.size <= maxSize;
+        };
+
+        // Check authentication state
+        showLoading('Checking authentication...');
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log('User authenticated, redirecting to pay.html');
+                window.location.href = 'pay.html';
+            } else {
+                console.log('No user authenticated');
+                hideLoading();
+            }
+        }, (error) => {
+            console.error('Auth state error:', error);
+            alert('Authentication check failed. Please try again.');
+            hideLoading();
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
                 return;
             }
 
-            const record = {
-                studentName,
-                studentClass,
-                computerBrand,
-                description,
-                additionalEquipment,
-                status: 'in',
-                checkoutTime: null,
-                history: []
-            };
-            records.push(record);
-            localStorage.setItem('laptopRecords', JSON.stringify(records));
+            showLoading('Logging in...');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
 
-            updateList();
-
-            // Clear form
-            document.getElementById('studentName').value = '';
-            document.getElementById('studentClass').value = '';
-            document.getElementById('computerBrand').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('additionalEquipment').value = '';
-        }
-
-        // Handle check-out
-        function checkOut(index) {
-            records[index].status = 'out';
-            records[index].checkoutTime = new Date().toISOString();
-            records[index].history.push({ action: 'checkout', time: records[index].checkoutTime });
-            localStorage.setItem('laptopRecords', JSON.stringify(records));
-            updateList();
-        }
-
-        // Handle check-in
-        function checkIn(index) {
-            if (records[index].status === 'out') {
-                const checkoutTime = new Date(records[index].checkoutTime);
-                const checkinTime = new Date();
-                records[index].status = 'in';
-                records[index].checkoutTime = null;
-                records[index].history.push({ action: 'checkin', time: checkinTime.toISOString(), duration: ((checkinTime - checkoutTime) / (1000 * 60 * 60)).toFixed(2) });
-                localStorage.setItem('laptopRecords', JSON.stringify(records));
-                updateList();
+            try {
+                console.log('Attempting login for:', email);
+                await signInWithEmailAndPassword(auth, email, password);
+                console.log('Login successful, redirecting to pay.html');
+                window.location.href = 'pay.html';
+            } catch (error) {
+                console.error('Login error:', error.code, error.message);
+                let errorMessage = 'Login failed. Please try again.';
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email address.';
+                        break;
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorMessage = 'Invalid email or password.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Too many attempts. Please try again later.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Network error. Please check your connection.';
+                        break;
+                    case 'auth/api-key-not-valid.-please-pass-a-valid-api-key':
+                        errorMessage = 'Invalid API key. Please contact support.';
+                        break;
+                }
+                alert(errorMessage);
+            } finally {
+                hideLoading();
             }
-        }
+        });
 
-        // Update records list
-        function updateList() {
-            const list = document.getElementById('recordsList');
-            list.innerHTML = '';
+        // Signup form submission
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
 
-            records.forEach((record, index) => {
-                const recordDiv = document.createElement('div');
-                recordDiv.className = 'col-12';
-                recordDiv.innerHTML = `
-                    <div class="card p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">${record.studentName}</h5>
-                                <p class="mb-1">Class: ${record.studentClass}</p>
-                                <p class="mb-1">Computer: ${record.computerBrand}</p>
-                                ${record.status === 'out' ? '<p class="text-warning fw-bold mb-1">IT IS OUT</p>' : ''}
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <button onclick="checkOut(${index})" class="${record.status === 'out' ? 'd-none' : ''} btn btn-danger btn-sm">OUT</button>
-                                <button onclick="checkIn(${index})" class="${record.status === 'in' ? 'd-none' : ''} btn btn-success btn-sm">IN</button>
-                                <button class="btn btn-link text-primary" data-bs-toggle="modal" data-bs-target="#detailsModal${index}">...</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Modal for Details -->
-                    <div class="modal fade" id="detailsModal${index}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">${record.studentName}'s Details</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p><strong>Description:</strong> ${record.description || 'N/A'}</p>
-                                    <p><strong>Additional Equipment:</strong> ${record.additionalEquipment || 'N/A'}</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                list.appendChild(recordDiv);
-            });
-        }
+            showLoading('Preparing signup...');
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
+            const confirmPassword = document.getElementById('signupConfirmPassword').value.trim();
+            const imageFile = document.getElementById('signupImage').files[0];
 
-        // Update analytics with graphs
-        function updateAnalytics() {
-            const analyticsContent = document.getElementById('analyticsContent');
-            analyticsContent.innerHTML = '';
+            if (!name || !email || !password || !confirmPassword || !imageFile) {
+                alert('Please fill in all fields and select an image.');
+                hideLoading();
+                return;
+            }
 
-            const today = new Date().toISOString().split('T')[0];
-            const weekStart = new Date();
-            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            if (!validatePassword(password)) {
+                alert('Password must be at least 8 characters long and include a number and a special character.');
+                hideLoading();
+                return;
+            }
 
-            records.forEach((record, index) => {
-                const history = record.history || [];
-                const daysUsed = [...new Set(history.map(h => new Date(h.time).toISOString().split('T')[0]))].length;
-                const weekHistory = history.filter(h => new Date(h.time) >= weekStart);
-                const totalWeekDuration = weekHistory
-                    .filter(h => h.duration)
-                    .reduce((sum, h) => sum + parseFloat(h.duration), 0)
-                    .toFixed(2);
-                const todayHistory = history.filter(h => h.time.startsWith(today));
-                const todayUsage = todayHistory
-                    .filter(h => h.action === 'checkout')
-                    .map(h => {
-                        const checkin = history.find(c => c.action === 'checkin' && new Date(c.time) > new Date(h.time));
-                        return checkin ? `${new Date(h.time).toLocaleTimeString()} - ${new Date(checkin.time).toLocaleTimeString()}` : '';
-                    })
-                    .filter(t => t)
-                    .join(', ');
+            if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                hideLoading();
+                return;
+            }
 
-                // Prepare data for bar chart
-                const daysData = Array(7).fill(0);
-                history
-                    .filter(h => h.duration && new Date(h.time) >= weekStart)
-                    .forEach(h => {
-                        const dayIndex = new Date(h.time).getDay();
-                        daysData[dayIndex] += parseFloat(h.duration);
-                    });
+            if (!validateImage(imageFile)) {
+                alert('Please select a valid image (JPEG/PNG/GIF, max 5MB).');
+                hideLoading();
+                return;
+            }
 
-                const analyticsDiv = document.createElement('div');
-                analyticsDiv.className = 'col-12';
-                analyticsDiv.innerHTML = `
-                    <div class="card p-3">
-                        <h5 class="mb-1">${record.studentName} (${record.studentClass})</h5>
-                        <p class="mb-1">Days Used: ${daysUsed}</p>
-                        <p class="mb-1">Total Time This Week: ${totalWeekDuration} hrs</p>
-                        <p class="mb-3">Today's Usage: ${todayUsage || 'None'}</p>
-                        <canvas id="chart${index}" height="100"></canvas>
-                    </div>
-                `;
-                analyticsContent.appendChild(analyticsDiv);
-
-                // Create bar chart
-                new Chart(document.getElementById(`chart${index}`), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                        datasets: [{
-                            label: 'Hours Used',
-                            data: daysData,
-                            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-                            borderColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: { display: true, text: 'Hours' }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
+            let imageUrl = '';
+            try {
+                showLoading('Uploading image...');
+                console.log('Uploading image:', imageFile.name, imageFile.type, imageFile.size);
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                const imgbbResponse = await fetch('https://api.imgbb.com/1/upload?key=5f06b308b918d5a7ef3c4f418da95032', {
+                    method: 'POST',
+                    body: formData
                 });
-            });
-        }
+                const imgbbData = await imgbbResponse.json();
+                console.log('ImgBB response:', imgbbData);
+
+                if (!imgbbData.success) {
+                    throw new Error(`Image upload failed: ${imgbbData.error?.message || 'Unknown error'}`);
+                }
+                imageUrl = imgbbData.data.url;
+            } catch (imgbbError) {
+                console.error('ImgBB error:', imgbbError.message);
+                alert(`Image upload failed: ${imgbbError.message}. Proceeding without image.`);
+                // Fallback: Continue signup without image
+            }
+
+            try {
+                showLoading('Creating user...');
+                console.log('Creating user with email:', email);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                showLoading('Saving user data...');
+                console.log('Saving user data to Firestore for UID:', user.uid);
+                await setDoc(doc(db, 'users', user.uid), {
+                    name: name,
+                    email: email,
+                    imageUrl: imageUrl || 'default-image-url', // Fallback if image upload failed
+                    createdAt: new Date().toISOString()
+                });
+
+                console.log('Signup successful, redirecting to pay.html');
+                window.location.href = 'pay.html';
+            } catch (error) {
+                console.error('Signup error:', error.code, error.message);
+                let errorMessage = 'Signup failed. Please try again.';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Email is already in use.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email address.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Password is too weak.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Network error. Please check your connection.';
+                        break;
+                    case 'auth/api-key-not-valid.-please-pass-a-valid-api-key':
+                        errorMessage = 'Invalid API key. Please contact support.';
+                        break;
+                }
+                alert(errorMessage);
+            } finally {
+                hideLoading();
+            }
+
+            // Alternative: Use Firebase Storage for image upload (uncomment to use)
+            /*
+            try {
+                showLoading('Uploading image...');
+                import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+                const storage = getStorage(app);
+                const storageRef = ref(storage, `profiles/${user.uid}/${imageFile.name}`);
+                await uploadBytes(storageRef, imageFile);
+                imageUrl = await getDownloadURL(storageRef);
+                console.log('Firebase Storage image URL:', imageUrl);
+            } catch (storageError) {
+                console.error('Firebase Storage error:', storageError);
+                alert('Image upload failed. Proceeding without image.');
+            }
+            */
+        });
     </script>
 </body>
 </html>
