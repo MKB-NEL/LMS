@@ -327,7 +327,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log('User authenticated, redirecting to pay.html');
-                window.location.href = 'pay.html';
+                window.location.href = 'home.html';
             } else {
                 console.log('No user authenticated');
                 hideLoading();
@@ -354,8 +354,8 @@
             try {
                 console.log('Attempting login for:', email);
                 await signInWithEmailAndPassword(auth, email, password);
-                console.log('Login successful, redirecting to pay.html');
-                window.location.href = 'pay.html';
+                console.log('Login successful, redirecting to home.html');
+                window.location.href = 'home.html';
             } catch (error) {
                 console.error('Login error:', error.code, error.message);
                 let errorMessage = 'Login failed. Please try again.';
@@ -462,7 +462,7 @@
                 });
 
                 console.log('Signup successful, redirecting to pay.html');
-                window.location.href = 'pay.html';
+                window.location.href = 'home.html';
             } catch (error) {
                 console.error('Signup error:', error.code, error.message);
                 let errorMessage = 'Signup failed. Please try again.';
